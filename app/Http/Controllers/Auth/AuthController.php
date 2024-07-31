@@ -28,10 +28,10 @@ class AuthController extends Controller
         ]);
 
         if ($validator->fails()) {
-            return response()->json(Response::error([
+            return response()->json([
                 'success' => false,
                 'errors' => $validator->errors(),
-            ]), 422);
+            ], 422);
         }
         $userDTO = UserDTO::fromRequest($request->all());
         $userDTO->role_id = RolesEnum::STUDENT->value;
@@ -66,7 +66,7 @@ class AuthController extends Controller
         $user = User::with(["role"])->where('email','=',$data['email'])->first();
         if($user){
             if (Hash::check($data['password'], $user->password)){
-                $permissions = Permission::query()->whereHas('roles',function($query) use($user){
+                $permissions = Permission::query()->whereHas('roles',function($query) use ($user){
                     $query->where('roles.id',$user->role_id);
                 })->pluck('name')->toArray();
 

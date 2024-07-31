@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Courses;
 
+use App\Domain\Courses\Actions\CreateCourseAction;
+use App\Domain\Courses\DTO\CourseDTO;
 use App\Helpers\Response;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
@@ -35,7 +37,10 @@ class CourseController extends Controller
         $validator = Validator::make($request->all(),[
             'name' => ['required','string'],
             'description' => ['nullable','string'],
-            'started_at' => ['string','nullable']
+            'started_at' => ['string','nullable'],
+            'price' => ['numeric','nullable'],
+            'user_teacher_id' => ['integer','nullable','exists:users,id'],
+            'category_id' => ['required','integer','exists:categories,id']
         ]);
 
         if ($validator->fails()) {
@@ -44,6 +49,12 @@ class CourseController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+
+        $courseDTO = CourseDTO::fromRequest($request->all());
+        $course = CreateCourseAction::execute($courseDTO);
+        return response()->json(Response::success($course->toArray()),200);
+
+
     }
 
     /**
@@ -67,7 +78,7 @@ class CourseController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+
     }
 
     /**
@@ -76,5 +87,22 @@ class CourseController extends Controller
     public function destroy(string $id)
     {
         //
+    }
+
+    public function get_category_courses(int $category_id){
+        $validator = Validator::make(['category_id' => $category_id],
+        [
+            'category_id' => ['required','integer','exists:categories,id']
+        ]);
+
+        if($validator->fails()){
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
+
+        $courses = Course::with(['category', 'teacher'])->where('category_id',$category_id)->get();
+        return response()->json(Response::success($courses->toArray()),200);
     }
 }

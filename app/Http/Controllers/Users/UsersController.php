@@ -17,16 +17,16 @@ class UsersController extends Controller
 {
 
     public function profile(){
-        $user = User::with('role')->find(auth('api')->id());
+        $user = User::with('role')->find(auth()->id());
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update_profile(Request $request,$id){
+    public function update_profile(Request $request){
 
         // التحقق من صحة البيانات
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
-            'email' => ['required','unique:users,email,'.$id.',id', 'string'],
+            'email' => ['required','unique:users,email,'.auth()->id().',id', 'string'],
             'password' => ['required', 'string'],
             'role_id'   => ['required','integer','exists:roles,id'],
             'national_number' => ['nullable','string'],
@@ -47,7 +47,7 @@ class UsersController extends Controller
         }
 
                 // العثور على المستخدم وتحديث بياناته
-        $user = User::find($id);
+        $user = User::find(auth()->id());
 
         if (!$user) {
             return response()->json([
@@ -57,10 +57,9 @@ class UsersController extends Controller
                 }
 
         $userDTO = UserDTO::fromRequest($request->all());
-        $user = DB::transaction(function () use ($user,$userDTO) {
-            $user = UpdateUserAction::execute($user,$userDTO);
-                return $user;
-            });
+        $user = UpdateUserAction::execute($user,$userDTO);
+
+        return response()->json(Response::success($user->toArray()),200);
     }
 
 }
