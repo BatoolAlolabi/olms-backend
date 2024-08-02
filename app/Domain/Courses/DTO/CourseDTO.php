@@ -7,11 +7,13 @@ use Spatie\LaravelData\Data;
 class CourseDTO extends Data
 {
     public function __construct(
-    public string $name,
+    public ?string $name,
     public ?string $description,
     public ?string $started_at,
     public ?float $price,
     public ?int $user_teacher_id,
+    public ?string $photo_path,
+    public ?int $category_id
     ){}
 
     public static function fromRequest($request)
@@ -21,7 +23,9 @@ class CourseDTO extends Data
             $request['description'] ?? null,
             $request['started_at'] ?? null,
             $request['price'] ?? null,
-            $request['user_teacher_id'] ?? null
+            $request['user_teacher_id'] ?? null,
+            $request['photo_path'] ?? null,
+            $request['category_id'] ?? null
         );
     }
 

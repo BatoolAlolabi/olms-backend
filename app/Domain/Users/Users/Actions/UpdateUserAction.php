@@ -8,7 +8,7 @@ use App\Models\User;
 class UpdateUserAction
 {
     public static function execute(User $user,UserDTO $userDTO){
-        $user->update($userDTO->toArray());
+        $user->update(array_filter($userDTO->toArray()));
         return $user;
     }
 

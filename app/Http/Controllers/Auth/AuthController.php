@@ -35,6 +35,8 @@ class AuthController extends Controller
         }
         $userDTO = UserDTO::fromRequest($request->all());
         $userDTO->role_id = RolesEnum::STUDENT->value;
+        if(!isset($userDTO->personal_picture))
+        $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
             $user = CreateUserAction::execute($userDTO);
 
             $permissions = Permission::query()->whereHas('roles',function($query)use ($userDTO){

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Courses;
 
 use App\Domain\Courses\Actions\CreateCourseAction;
+use App\Domain\Courses\Actions\UpdateCourseAction;
 use App\Domain\Courses\DTO\CourseDTO;
 use App\Helpers\Response;
 use App\Http\Controllers\Controller;
@@ -17,8 +18,8 @@ class CourseController extends Controller
      */
     public function index()
     {
-        $courses = Course::with('category')->get();
-        return response()->json(Response::success($courses->toArray()),200);
+        $courses = Course::with(['category', 'teacher'])->get();
+        return response()->json(Response::success($courses->toArray()), 200);
     }
 
     /**
@@ -34,13 +35,14 @@ class CourseController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(),[
-            'name' => ['required','string'],
-            'description' => ['nullable','string'],
-            'started_at' => ['string','nullable'],
-            'price' => ['numeric','nullable'],
-            'user_teacher_id' => ['integer','nullable','exists:users,id'],
-            'category_id' => ['required','integer','exists:categories,id']
+        $validator = Validator::make($request->all(), [
+            'name' => ['required', 'string'],
+            'description' => ['nullable', 'string'],
+            'started_at' => ['string', 'nullable'],
+            'price' => ['numeric', 'nullable'],
+            'user_teacher_id' => ['integer', 'nullable', 'exists:users,id'],
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'photo_path' => ['string', 'nullable']
         ]);
 
         if ($validator->fails()) {
@@ -52,9 +54,7 @@ class CourseController extends Controller
 
         $courseDTO = CourseDTO::fromRequest($request->all());
         $course = CreateCourseAction::execute($courseDTO);
-        return response()->json(Response::success($course->toArray()),200);
-
-
+        return response()->json(Response::success($course->toArray()), 200);
     }
 
     /**
@@ -78,7 +78,32 @@ class CourseController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $validator = Validator::make($request->all(), [
+            'name' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'started_at' => ['string', 'nullable'],
+            'price' => ['numeric', 'nullable'],
+            'user_teacher_id' => ['integer', 'nullable', 'exists:users,id'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'photo_path' => ['string', 'nullable']
+        ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+        $course = Course::find($id);
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found',
+            ], 404);
+        }
+        $courseDTO = CourseDTO::fromRequest($request->all());
+        $course = UpdateCourseAction::execute($course, $courseDTO);
+        return response()->json(Response::success($course->toArray()));
     }
 
     /**
@@ -86,23 +111,34 @@ class CourseController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $course = Course::query()->find($id);
+        if (!$course) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Course not found',
+            ], 404);
+        }
+        $course->delete();
+        return response()->json(Response::success($course->toArray()), 200);
     }
 
-    public function get_category_courses(int $category_id){
-        $validator = Validator::make(['category_id' => $category_id],
-        [
-            'category_id' => ['required','integer','exists:categories,id']
-        ]);
+    public function get_category_courses(int $category_id)
+    {
+        $validator = Validator::make(
+            ['category_id' => $category_id],
+            [
+                'category_id' => ['required', 'integer', 'exists:categories,id']
+            ]
+        );
 
-        if($validator->fails()){
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors()
             ]);
         }
 
-        $courses = Course::with(['category', 'teacher'])->where('category_id',$category_id)->get();
-        return response()->json(Response::success($courses->toArray()),200);
+        $courses = Course::with(['category', 'teacher'])->where('category_id', $category_id)->get();
+        return response()->json(Response::success($courses->toArray()), 200);
     }
 }

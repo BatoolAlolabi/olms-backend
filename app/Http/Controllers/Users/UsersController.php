@@ -16,27 +16,29 @@ use Illuminate\Support\Facades\Validator;
 class UsersController extends Controller
 {
 
-    public function profile(){
+    public function profile()
+    {
         $user = User::with('role')->find(auth()->id());
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update_profile(Request $request){
+    public function update_profile(Request $request)
+    {
 
         // التحقق من صحة البيانات
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
-            'email' => ['required','unique:users,email,'.auth()->id().',id', 'string'],
-            'password' => ['required', 'string'],
-            'role_id'   => ['required','integer','exists:roles,id'],
-            'national_number' => ['nullable','string'],
-            'central_number' => ['nullable','string'],
-            'surname' => ['nullable','string'],
-            'birth_date' => ['nullable','string'],
-            'father_name' => ['nullable','string'],
-            'mother_name' => ['nullable','string'],
-            'personal_picture' => ['nullable','string'],
-            'financial_id' => ['nullable','integer','exists:financials,id'],
+            'email' => ['required', 'unique:users,email,' . auth()->id() . ',id', 'string'],
+            'password' => ['nullable', 'string'],
+            'role_id'   => ['nullable', 'integer', 'exists:roles,id'],
+            'national_number' => ['nullable', 'string'],
+            'central_number' => ['nullable', 'string'],
+            'surname' => ['nullable', 'string'],
+            'birth_date' => ['nullable', 'string'],
+            'father_name' => ['nullable', 'string'],
+            'mother_name' => ['nullable', 'string'],
+            'personal_picture' => ['nullable', 'string'],
+            'financial_id' => ['nullable', 'integer', 'exists:financials,id'],
         ]);
 
         if ($validator->fails()) {
@@ -46,20 +48,21 @@ class UsersController extends Controller
             ], 422);
         }
 
-                // العثور على المستخدم وتحديث بياناته
+        // العثور على المستخدم وتحديث بياناته
         $user = User::find(auth()->id());
 
         if (!$user) {
             return response()->json([
                 'success' => false,
                 'message' => 'User not found',
-                    ], 404);
-                }
+            ], 404);
+        }
 
         $userDTO = UserDTO::fromRequest($request->all());
-        $user = UpdateUserAction::execute($user,$userDTO);
+        if (!isset($userDTO->personal_picture))
+            $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
+        $user = UpdateUserAction::execute($user, $userDTO);
 
-        return response()->json(Response::success($user->toArray()),200);
+        return response()->json(Response::success($user->toArray()), 200);
     }
-
 }

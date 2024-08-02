@@ -11,7 +11,7 @@ class UserDTO extends Data
     public function __construct(
     public string $name,
     public string $email,
-    public string $password,
+    public ?string $password,
     public ?int $role_id,
     public ?string $national_number,
     public ?string $central_number,

@@ -13,6 +13,11 @@ class Course extends Model
         'id'
     ];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at'
+    ];
+
     public function category(){
         return $this->belongsTo(Category::class);
     }
@@ -22,6 +27,6 @@ class Course extends Model
     }
 
     public function teacher(){
-        return $this->belongsTo(User::class,'teacher_user_id');
+        return $this->belongsTo(User::class,'user_teacher_id');
     }
 }
