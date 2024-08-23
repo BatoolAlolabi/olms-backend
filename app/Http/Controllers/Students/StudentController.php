@@ -47,7 +47,7 @@ class StudentController extends Controller
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update(Request $request,$id){
+    public function update(Request $request, $id){
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string'],
             'email' => ['required','unique:users,email,'.$id.',id', 'string'],

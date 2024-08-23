@@ -15,6 +15,7 @@ if (!function_exists('array_null_filter')) {
 
 if (!function_exists('success')) {
 
+
     function success($data = null): array
     {
         $response = ['isSuccessful' => true];

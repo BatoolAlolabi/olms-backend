@@ -10,7 +10,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens,HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -49,15 +49,16 @@ class User extends Authenticatable
 
     public function generateAccessToken()
     {
-        $permissions = Permission::query()->whereHas('roles',function($query){
-            $query->where('roles.id',$this->role_id);
+        $permissions = Permission::query()->whereHas('roles', function ($query) {
+            $query->where('roles.id', $this->role_id);
         })->pluck('name')->toArray();
-        $objToken = $this->createToken('MyApp',$permissions ??[] );
+        $objToken = $this->createToken('MyApp', $permissions ?? []);
         $this->setAttribute('access_token', $objToken->plainTextToken);
         return $this;
     }
 
-    public function role(){
+    public function role()
+    {
         return $this->belongsto(Role::class);
     }
 }

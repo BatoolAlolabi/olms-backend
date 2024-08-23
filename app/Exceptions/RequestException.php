@@ -25,6 +25,7 @@ class RequestException extends Exception
 
     public function render(Request $request)
     {
-        return response()->json(Response::error(json_decode($this->message,true),$this->detailed_error,$this->code), $this->code);
+        return response()->json(Response::error(json_decode($this->message,true),
+        $this->detailed_error,$this->code), $this->code);
     }
 }

@@ -23,7 +23,7 @@ class AuthController extends Controller
         // التحقق من صحة البيانات
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
-            'email' => ['required','unique:users,email,NULL,id', 'string'],
+            'email' => ['required', 'unique:users,email,NULL,id', 'string'],
             'password' => ['required', 'string'],
         ]);
 
@@ -35,19 +35,19 @@ class AuthController extends Controller
         }
         $userDTO = UserDTO::fromRequest($request->all());
         $userDTO->role_id = RolesEnum::STUDENT->value;
-        if(!isset($userDTO->personal_picture))
-        $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
-            $user = CreateUserAction::execute($userDTO);
+        if (!isset($userDTO->personal_picture))
+            $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
+        $user = CreateUserAction::execute($userDTO);
 
-            $permissions = Permission::query()->whereHas('roles',function($query)use ($userDTO){
-                $query->where('roles.id','=',$userDTO->role_id);
-            })->pluck('name')->toArray();
+        $permissions = Permission::query()->whereHas('roles', function ($query) use ($userDTO) {
+            $query->where('roles.id', '=', $userDTO->role_id);
+        })->pluck('name')->toArray();
 
-        $objToken = $user->createToken('MyApp',$permissions ??[] );
+        $objToken = $user->createToken('MyApp', $permissions ?? []);
 
         return response()->json(Response::success($user->toArray() + [
             'access_token' => $objToken->plainTextToken ?? null,
-        ]) );
+        ]));
     }
 
     public function login(Request $request)
@@ -64,23 +64,21 @@ class AuthController extends Controller
             ]), 422);
         }
         $data = $request->all();
-
-        $user = User::with(["role"])->where('email','=',$data['email'])->first();
-        if($user){
-            if (Hash::check($data['password'], $user->password)){
-                $permissions = Permission::query()->whereHas('roles',function($query) use ($user){
-                    $query->where('roles.id',$user->role_id);
+        $email = $data['email'];
+        $user = User::with(["role"])->where('email', '=', $email)->first(); // first : get first row from query result (used with field unique )
+        if ($user) {
+            if (Hash::check($data['password'], $user->password)) {
+                $permissions = Permission::query()->whereHas('roles', function ($query) use ($user) {
+                    $query->where('roles.id', $user->role_id);
                 })->pluck('name')->toArray();
 
-                $objToken = $user->createToken('MyApp',$permissions ??[] );
+                $objToken = $user->createToken('MyApp', $permissions ?? []);
 
                 return response()->json(Response::success($user->toArray() + [
                     'access_token' => $objToken->plainTextToken ?? null,
                 ]));
             }
-
         }
-        throw new RequestException('you are not authenticated,please signup and try again.',null,401);
+        throw new RequestException('you are not authenticated,please signup and try again.', null, 401);
     }
-
 }

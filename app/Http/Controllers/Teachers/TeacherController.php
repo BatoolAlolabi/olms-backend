@@ -24,7 +24,7 @@ class TeacherController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
-            'email' => ['required', 'unique:users,email,NULL,id', 'string'],
+            'email' => ['required', 'unique:users,email,NULL,id', 'string'], // id = null
             'password' => ['required', 'string'],
             'national_number' => ['nullable', 'string'],
             'central_number' => ['nullable', 'string'],
@@ -49,8 +49,9 @@ class TeacherController extends Controller
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update(Request $request, $id)
+    public function update( Request $request,$id)
     {
+        // make instance of Class Validator ($validator), instance by this data, make method  don't return boolean
         $validator = Validator::make($request->all(), [
             'name' => ['required', 'string'],
             'email' => ['required', 'unique:users,email,' . $id . ',id', 'string'],
@@ -64,10 +65,11 @@ class TeacherController extends Controller
             'personal_picture' => ['nullable', 'string'],
         ]);
 
+        // check if $validator passed or not ,   fails method return boolean
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors(),
+                'errors' => $validator->errors(), // get errors array from $validator instance
             ], 422);
         }
 

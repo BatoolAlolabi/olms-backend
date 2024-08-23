@@ -9,6 +9,7 @@ class Permission extends Model
 {
     use HasFactory;
 
+    protected $guarded = ['id'];
     protected $fillable = [
         'name',
         'created_at',
@@ -21,7 +22,8 @@ class Permission extends Model
         'updated_at',
     ];
 
-    public function roles(){
-        return $this->belongsToMany(Role::class,'role_permission');
+    public function roles()
+    {
+        return $this->belongsToMany(Role::class, 'role_permission');
     }
 }
