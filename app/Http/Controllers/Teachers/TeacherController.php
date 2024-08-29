@@ -14,25 +14,23 @@ use Illuminate\Support\Facades\Validator;
 
 class TeacherController extends Controller
 {
-    public function index()
-    {
-        $teachers = User::query()->where('role_id', RolesEnum::TEACHER->value)->latest()->get();
+    public function index(){
+        $teachers = User::query()->where('role_id',RolesEnum::TEACHER->value)->get();
         return response()->json(Response::success($teachers->toArray()));
     }
 
-    public function store(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
+    public function store(Request $request){
+        $validator = Validator::make($request->all(),[
             'name' => ['required', 'string'],
-            'email' => ['required', 'unique:users,email,NULL,id', 'string'], // id = null
+            'email' => ['required','unique:users,email,NULL,id', 'string'],
             'password' => ['required', 'string'],
-            'national_number' => ['nullable', 'string'],
-            'central_number' => ['nullable', 'string'],
-            'surname' => ['nullable', 'string'],
-            'birth_date' => ['nullable', 'string'],
-            'father_name' => ['nullable', 'string'],
-            'mother_name' => ['nullable', 'string'],
-            'personal_picture' => ['nullable', 'string'],
+            'national_number' => ['nullable','string'],
+            'central_number' => ['nullable','string'],
+            'surname' => ['nullable','string'],
+            'birth_date' => ['nullable','string'],
+            'father_name' => ['nullable','string'],
+            'mother_name' => ['nullable','string'],
+            'personal_picture' => ['nullable','string'],
         ]);
 
         if ($validator->fails()) {
@@ -43,33 +41,30 @@ class TeacherController extends Controller
         }
 
         $userDTO = UserDTO::fromRequest($request->all() + ['role_id' => RolesEnum::TEACHER->value]);
-        if (!isset($userDTO->personal_picture))
-            $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
+        if(!isset($userDTO->personal_picture))
+        $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
         $user = CreateUserAction::execute($userDTO);
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update( Request $request,$id)
-    {
-        // make instance of Class Validator ($validator), instance by this data, make method  don't return boolean
-        $validator = Validator::make($request->all(), [
+    public function update(Request $request,$id){
+        $validator = Validator::make($request->all(),[
             'name' => ['required', 'string'],
-            'email' => ['required', 'unique:users,email,' . $id . ',id', 'string'],
+            'email' => ['required','unique:users,email,'.$id.',id', 'string'],
             'password' => ['nullable', 'string'],
-            'national_number' => ['nullable', 'string'],
-            'central_number' => ['nullable', 'string'],
-            'surname' => ['nullable', 'string'],
-            'birth_date' => ['nullable', 'string'],
-            'father_name' => ['nullable', 'string'],
-            'mother_name' => ['nullable', 'string'],
-            'personal_picture' => ['nullable', 'string'],
+            'national_number' => ['nullable','string'],
+            'central_number' => ['nullable','string'],
+            'surname' => ['nullable','string'],
+            'birth_date' => ['nullable','string'],
+            'father_name' => ['nullable','string'],
+            'mother_name' => ['nullable','string'],
+            'personal_picture' => ['nullable','string'],
         ]);
 
-        // check if $validator passed or not ,   fails method return boolean
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors(), // get errors array from $validator instance
+                'errors' => $validator->errors(),
             ], 422);
         }
 
@@ -79,26 +74,26 @@ class TeacherController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',
-            ], 404);
-        }
+                    ], 404);
+                }
 
         $userDTO = UserDTO::fromRequest($request->all());
-        if (!isset($userDTO->personal_picture))
-            $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
-        $user = UpdateUserAction::execute($user, $userDTO);
-        return response()->json(Response::success($user->toArray()), 200);
+        if(!isset($userDTO->personal_picture))
+        $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
+        $user = UpdateUserAction::execute($user,$userDTO);
+        return response()->json(Response::success($user->toArray()),200);
     }
 
-    public function destroy($id)
-    {
+    public function destroy($id){
         $user = User::query()->find($id);
         if (!$user || $user->role_id != RolesEnum::TEACHER->value) {
             return response()->json([
                 'success' => false,
                 'message' => 'Teacher not found',
-            ], 404);
-        }
+                    ], 404);
+                }
+
         $user->delete();
-        return response()->json(Response::success($user->toArray()), 200);
+        return response()->json(Response::success($user->toArray()),200);
     }
 }

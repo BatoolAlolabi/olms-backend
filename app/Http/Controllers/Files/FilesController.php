@@ -20,10 +20,12 @@ class FilesController extends Controller
                 'errors' => $validator->errors(),
             ], 422);
         }
+        if ($request->hasFile('file')) {
             $path = $request->file('file')->store('images');
             $response = [
                 'file_path' => '/storage/'.$path
             ];
             return response()->json(Response::success($response),200);
+        }
     }
 }

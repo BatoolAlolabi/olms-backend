@@ -8,6 +8,7 @@ use App\Domain\Users\Users\DTO\UserDTO;
 use App\Enum\RolesEnum;
 use App\Helpers\Response;
 use App\Http\Controllers\Controller;
+use App\Models\Financial;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -43,11 +44,16 @@ class StudentController extends Controller
         $userDTO = UserDTO::fromRequest($request->all() + ['role_id' => RolesEnum::STUDENT->value]);
         if(!isset($userDTO->personal_picture))
         $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
+        $financial = new Financial();
+        $financial->save();
+        $userDTO->financial_id = $financial->id;
         $user = CreateUserAction::execute($userDTO);
+        $financial = new Financial(['user_id' => $user->id]);
+        $financial->save();
         return response()->json(Response::success($user->toArray()));
     }
 
-    public function update(Request $request, $id){
+    public function update(Request $request,$id){
         $validator = Validator::make($request->all(),[
             'name' => ['required', 'string'],
             'email' => ['required','unique:users,email,'.$id.',id', 'string'],
@@ -81,6 +87,12 @@ class StudentController extends Controller
         if(!isset($userDTO->personal_picture))
         $userDTO->personal_picture = '/storage/images/default_profile_image.jpg';
         $user = UpdateUserAction::execute($user,$userDTO);
+        if(!isset($user->financial_id)){
+            $financial = new Financial(['user_id' => $user->id]);
+            $financial->save();
+            $user->financial_id = $financial->id;
+            $user->save();
+        }
         return response()->json(Response::success($user->toArray()),200);
     }
 

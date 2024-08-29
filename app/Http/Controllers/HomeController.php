@@ -8,12 +8,11 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function index()
-    {
-        $categoires = Category::with(['courses' => function ($query) {
-            $query->with(['teacher'])->inRandomOrder()->limit(4);
+    public function index(){
+        $categoires = Category::with(['courses'=>function($query){
+            $query->with(['teacher'])->inRandomOrder()->limit(3);
         }])->inRandomOrder()->limit(3)->get();
         $data['categoires'] = $categoires;
-        return response()->json(Response::success($data), 200);
+        return response()->json(Response::success($data),200);
     }
 }

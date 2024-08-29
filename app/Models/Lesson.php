@@ -19,4 +19,12 @@ class Lesson extends Model
     public function course(){
         return $this->belongsTo(Course::class);
     }
+
+    public function sessions(){
+        return $this->hasMany(Session::class,'lesson_id');
+    }
+
+    public function grades(){
+        return $this->hasMany(Grades::class);
+    }
 }
